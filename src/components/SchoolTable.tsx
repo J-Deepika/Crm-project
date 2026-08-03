@@ -31,7 +31,7 @@ const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 5;
 const [selectedSubject, setSelectedSubject] = useState("All");
- const [selectedGrade, setSelectedGrade] = useState("11");
+
 
 React.useEffect(() => {
   if (
@@ -380,14 +380,7 @@ return {
     </option>
   ))}
 </select>
-<select
-  value={selectedGrade}
-  onChange={(e)=>setSelectedGrade(e.target.value)}
-  className="border rounded px-3 py-2 ml-3"
->
-  <option value="11">Grade 11</option>
-  <option value="12">Grade 12</option>
-</select>
+
 
         <div className="flex gap-3">
           <button
@@ -420,7 +413,7 @@ return {
         <table className="border-collapse w-full">
 <TableHeader
  subjects={visibleSubjects}
- selectedGrade={selectedGrade}
+
  setSubjects={setSubjects}
  deleteSubject={deleteSubject}
  deleteMedium={deleteMedium}

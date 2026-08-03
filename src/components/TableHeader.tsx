@@ -4,7 +4,7 @@ import type { Subject, Book } from "../types";
 
 interface TableHeaderProps {
   subjects: Subject[];
-  selectedGrade: string;
+  
 
   setSubjects: React.Dispatch<React.SetStateAction<Subject[]>>;
 
@@ -26,7 +26,7 @@ interface TableHeaderProps {
 export default function TableHeader({
 
   subjects,
-  selectedGrade,
+ 
   setSubjects,
   deleteSubject,
   deleteMedium,
