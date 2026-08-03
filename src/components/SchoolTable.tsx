@@ -176,24 +176,31 @@ const mediumNames = [
       prev.map((school) => {
         const updatedBooks = { ...school.books };
 
-       (["11", "12"] as const).forEach((grade) => {
-          if (!updatedBooks[grade][subjectName]) {
-            updatedBooks[grade][subjectName] = {} as MediumBooks;
-          }
+      (["11", "12"] as const).forEach((grade) => {
 
-          mediumNames.forEach((mediumName) => {
-            const old =
-              updatedBooks[grade][subjectName][mediumName] || [];
+  // Grade object create karo agar missing hai
+  if (!updatedBooks[grade]) {
+    updatedBooks[grade] = {} as any;
+  }
 
-            updatedBooks[grade][subjectName][mediumName] = [
-              ...old,
-              ...books.map(() => ({
-                date: "",
-                qty: "",
-              })),
-            ];
-          });
-        });
+  // Subject object create karo agar missing hai
+  if (!updatedBooks[grade][subjectName]) {
+    updatedBooks[grade][subjectName] = {} as MediumBooks;
+  }
+
+  mediumNames.forEach((mediumName) => {
+    const old =
+      updatedBooks[grade][subjectName][mediumName] || [];
+
+    updatedBooks[grade][subjectName][mediumName] = [
+      ...old,
+      ...books.map(() => ({
+        date: "",
+        qty: "",
+      })),
+    ];
+  });
+});
 
         return {
           ...school,
