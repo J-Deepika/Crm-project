@@ -8,76 +8,140 @@ export default function SchoolManagement() {
 
   // ================= Books =================
 
-  const createBooks = () => [
-    {
-      id: 1,
-      name: "Book 1"
-    },
-    {
-      id: 2,
-      name: "Book 2"
-    },
-    {
-      id: 3,
-      name: "Book 3"
-    },
-    {
-      id: 4,
-      name: "Book 4"
-    },
-  ];
-
-
-
-  // ================= Medium =================
-
-  const createMediums = () => [
-    {
-      id: 1,
-      name: "English Medium",
-      books: createBooks()
-    },
-
-    {
-      id: 2,
-      name: "Hindi Medium",
-      books: createBooks()
-    }
-  ];
-
-
-
-
-  // ================= Subjects =================
-
-const defaultSubjects: Subject[] = [
+ const defaultSubjects: Subject[] = [
   {
-    id:1,
-    name:"Science",
-    mediums:createMediums()
+    id: 1,
+    name: "Science",
+    mediums: [
+      {
+        id: 1,
+        name: "English Medium",
+        books: [
+          { id: 1, name: "Physics" },
+          { id: 2, name: "Chemistry" },
+          { id: 3, name: "Biology" },
+          { id: 4, name: "Mathematics" },
+        ],
+      },
+      {
+        id: 2,
+        name: "Hindi Medium",
+        books: [
+          { id: 1, name: "Physics" },
+          { id: 2, name: "Chemistry" },
+          { id: 3, name: "Biology" },
+          { id: 4, name: "Mathematics" },
+        ],
+      },
+    ],
   },
+
   {
-    id:2,
-    name:"Commerce",
-    mediums:createMediums()
+    id: 2,
+    name: "Commerce",
+    mediums: [
+      {
+        id: 1,
+        name: "English Medium",
+        books: [
+          { id: 1, name: "Business Studies" },
+          { id: 2, name: "Accountancy" },
+          { id: 3, name: "Economics" },
+          { id: 4, name: "Bookkeeping" },
+        ],
+      },
+      {
+        id: 2,
+        name: "Hindi Medium",
+        books: [
+          { id: 1, name: "Business Studies" },
+          { id: 2, name: "Accountancy" },
+          { id: 3, name: "Economics" },
+          { id: 4, name: "Bookkeeping" },
+        ],
+      },
+    ],
   },
+
   {
-    id:3,
-    name:"Arts",
-    mediums:createMediums()
+    id: 3,
+    name: "Arts",
+    mediums: [
+      {
+        id: 1,
+        name: "English Medium",
+        books: [
+          { id: 1, name: "Political Science" },
+          { id: 2, name: "Geography" },
+          { id: 3, name: "History" },
+          { id: 4, name: "Economics" },
+          { id: 5, name: "Sociology" },
+        ],
+      },
+      {
+        id: 2,
+        name: "Hindi Medium",
+        books: [
+          { id: 1, name: "Political Science" },
+          { id: 2, name: "Geography" },
+          { id: 3, name: "History" },
+          { id: 4, name: "Economics" },
+          { id: 5, name: "Sociology" },
+        ],
+      },
+    ],
   },
+
   {
-    id:4,
-    name:"Agriculture",
-    mediums:createMediums()
+    id: 4,
+    name: "Agriculture",
+    mediums: [
+      {
+        id: 1,
+        name: "English Medium",
+        books: [
+          { id: 1, name: "Horticulture" },
+          { id: 2, name: "Animal Husbandry" },
+          { id: 3, name: "Crop Production" },
+        ],
+      },
+      {
+        id: 2,
+        name: "Hindi Medium",
+        books: [
+          { id: 1, name: "Horticulture" },
+          { id: 2, name: "Animal Husbandry" },
+          { id: 3, name: "Crop Production" },
+        ],
+      },
+    ],
   },
+
   {
-    id:5,
-    name:"Bharti",
-    mediums:createMediums()
-  }
+    id: 5,
+    name: "Bharati",
+    mediums: [
+      {
+        id: 1,
+        name: "English Medium",
+        books: [
+          { id: 1, name: "Hindi" },
+          { id: 2, name: "English" },
+          { id: 3, name: "Sanskrit" },
+        ],
+      },
+      {
+        id: 2,
+        name: "Hindi Medium",
+        books: [
+          { id: 1, name: "Hindi" },
+          { id: 2, name: "English" },
+          { id: 3, name: "Sanskrit" },
+        ],
+      },
+    ],
+  },
 ];
-
 
 const [subjects,setSubjects] = useState<Subject[]>(()=>{
 
@@ -168,20 +232,8 @@ useEffect(() => {
   );
 }, [subjects]);
 
-useEffect(() => {
-  localStorage.setItem(
-    "schools",
-    JSON.stringify(schools)
-  );
-}, [schools]);
 
 
-
-
-
-
-
-  // ================= Input Change =================
 
 
   const handleInputChange = (
