@@ -253,11 +253,9 @@ export default function ImportExcel({
 export function ExportExcel({
   schools,
   subjects,
-  editingValues,
 }: {
   schools: School[];
   subjects: Subject[];
-  editingValues: Record<string, string>;
 }) {
   // ===================================================
   // GET BOOK ENTRIES
@@ -283,92 +281,40 @@ export function ExportExcel({
   // GET DATE / QTY
   // ===================================================
 
-  const getFieldValue = (
-    school: School,
-    grade: "11" | "12",
-    subjectName: string,
-    mediumName: string,
-    bookIndex: number,
-    field: "date" | "qty"
-  ): string => {
-    const key =
-      `${school.id}-${grade}-${subjectName}-${mediumName}-${bookIndex}-${field}`;
+const getFieldValue = (
+  school: School,
+  grade: "11" | "12",
+  subjectName: string,
+  mediumName: string,
+  bookIndex: number,
+  field: "date" | "qty"
+): string => {
 
-    // ===============================================
-    // CURRENT TEXTAREA VALUE
-    // ===============================================
+  const data =
+    school.books?.[grade]?.[subjectName]?.[
+      mediumName
+    ]?.[bookIndex];
 
-    if (
-      Object.prototype.hasOwnProperty.call(
-        editingValues,
-        key
-      )
-    ) {
-      return editingValues[key] ?? "";
-    }
+  const entries = getEntries(data);
 
-    // ===============================================
-    // GET BOOK DATA
-    // ===============================================
-
-    const data =
-      school.books?.[grade]?.[subjectName]?.[
-        mediumName
-      ]?.[bookIndex];
-
-    // ===============================================
-    // GET MULTIPLE ENTRIES
-    // ===============================================
-
-    const entries = getEntries(data);
-
-    // ===============================================
-    // RETURN VALUES
-    // ===============================================
-
-    return entries
-      .map((entry) =>
-        String(
-          entry[field] ?? ""
-        ).trim()
-      )
-      .filter(
-        (value) => value !== ""
-      )
-      .join("\n");
-  };
+  return entries
+    .map((entry) =>
+      String(entry[field] ?? "").trim()
+    )
+    .filter((value) => value !== "")
+    .join("\n");
+};
 
   // ===================================================
   // GET REMARK
   // ===================================================
 
-  const getRemark = (
-    school: School,
-    grade: "11" | "12"
-  ): string => {
-    const key =
-      `${school.id}-${grade}-remark`;
-
-    // ===============================================
-    // CURRENT EDITING VALUE
-    // ===============================================
-
-    if (
-      Object.prototype.hasOwnProperty.call(
-        editingValues,
-        key
-      )
-    ) {
-      return editingValues[key] ?? "";
-    }
-
-    // ===============================================
-    // SAVED REMARK
-    // ===============================================
-
-    return school.remarks?.[grade] ?? "";
-  };
-
+ const getRemark = (
+  school: School,
+  grade: "11" | "12"
+): string => {
+  return school.remarks?.[grade] ?? "";
+};
   // ===================================================
   // EXPORT
   // ===================================================

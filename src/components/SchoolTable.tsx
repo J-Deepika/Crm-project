@@ -32,7 +32,7 @@ const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 5;
 const [selectedSubject, setSelectedSubject] = useState("All");
-const [editingValues, setEditingValues] = useState<Record<string, string>>({});
+
 
 React.useEffect(() => {
   if (
@@ -527,7 +527,7 @@ const handleTextareaChange = (
       bookIndex,
       entryIndex,
       field,
-      item
+      item.trim()
     );
   });
 };
@@ -577,10 +577,9 @@ const handleTextareaChange = (
             subjects={subjects}
           />
 
-       <ExportExcel
+ <ExportExcel
   schools={schools}
   subjects={subjects}
-  editingValues={editingValues}
 />
         </div>
       </div>
@@ -689,35 +688,10 @@ const bookEntries = Array.isArray(rawBookEntries)
 
 <td className="border p-1 align-top">
   <textarea
-    value={
-      editingValues[
-        `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-date`
-      ] ??
-      bookEntries
-        .map((entry: any) =>
-          typeof entry === "object" && entry !== null
-            ? entry.date || ""
-            : ""
-        )
-        .join("\n")
-    }
+    value={bookEntries
+      .map((entry: any) => entry?.date || "")
+      .join("\n")}
     onChange={(e) => {
-      const key = `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-date`;
-
-      setEditingValues((prev) => ({
-        ...prev,
-        [key]: e.target.value,
-      }));
-
-      // Height automatically increase
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onFocus={(e) => {
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onBlur={(e) => {
       handleTextareaChange(
         school.id,
         grade,
@@ -728,6 +702,10 @@ const bookEntries = Array.isArray(rawBookEntries)
         e.target.value
       );
 
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onFocus={(e) => {
       e.target.style.height = "auto";
       e.target.style.height = `${e.target.scrollHeight}px`;
     }}
@@ -751,35 +729,14 @@ const bookEntries = Array.isArray(rawBookEntries)
 {/* ================= QTY ================= */}
 <td className="border p-1 align-top">
   <textarea
-    value={
-      editingValues[
-        `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-qty`
-      ] ??
-      bookEntries
-        .map((entry: any) =>
-          typeof entry === "object" && entry !== null
-            ? entry.qty || ""
-            : ""
-        )
-        .join("\n")
-    }
+    value={bookEntries
+      .map((entry: any) =>
+        typeof entry === "object" && entry !== null
+          ? entry.qty || ""
+          : ""
+      )
+      .join("\n")}
     onChange={(e) => {
-      const key = `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-qty`;
-
-      setEditingValues((prev) => ({
-        ...prev,
-        [key]: e.target.value,
-      }));
-
-      // Height automatically increase
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onFocus={(e) => {
-      e.target.style.height = "auto";
-      e.target.style.height = `${e.target.scrollHeight}px`;
-    }}
-    onBlur={(e) => {
       handleTextareaChange(
         school.id,
         grade,
@@ -790,6 +747,10 @@ const bookEntries = Array.isArray(rawBookEntries)
         e.target.value
       );
 
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onFocus={(e) => {
       e.target.style.height = "auto";
       e.target.style.height = `${e.target.scrollHeight}px`;
     }}
@@ -808,7 +769,6 @@ const bookEntries = Array.isArray(rawBookEntries)
     "
   />
 </td>
-
                   </React.Fragment>
                 );
               })

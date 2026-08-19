@@ -240,111 +240,70 @@ export default function SchoolManagement() {
   // HANDLE DATE + QTY CHANGE
   // =====================================================
 
-  const handleInputChange = (
-    schoolId: number,
-    grade: string,
-    subjectName: string,
-    mediumName: string,
-    bookIndex: number,
-    entryIndex: number,
-    field: "date" | "qty",
-    value: string
-  ) => {
-    setSchools((prevSchools) => {
-      return prevSchools.map((school) => {
-        // -----------------------------------------------
-        // Other schools ko change nahi karna
-        // -----------------------------------------------
+ const handleInputChange = (
+  schoolId: number,
+  grade: string,
+  subjectName: string,
+  mediumName: string,
+  bookIndex: number,
+  entryIndex: number,
+  field: "date" | "qty",
+  value: string
+) => {
+  setSchools((prevSchools) =>
+    prevSchools.map((school) => {
+      if (school.id !== schoolId) {
+        return school;
+      }
 
-        if (school.id !== schoolId) {
-          return school;
-        }
+      const updatedBooks: any = structuredClone(
+        school.books || {}
+      );
 
-        // -----------------------------------------------
-        // Deep copy
-        // -----------------------------------------------
+      // Grade
+      if (!updatedBooks[grade]) {
+        updatedBooks[grade] = {};
+      }
 
-        const updatedBooks: any = structuredClone(
-          school.books || {}
-        );
+      // Subject
+      if (!updatedBooks[grade][subjectName]) {
+        updatedBooks[grade][subjectName] = {};
+      }
 
-        // -----------------------------------------------
-        // Grade create if missing
-        // -----------------------------------------------
+      // Medium
+      if (!updatedBooks[grade][subjectName][mediumName]) {
+        updatedBooks[grade][subjectName][mediumName] = [];
+      }
 
-        if (!updatedBooks[grade]) {
-          updatedBooks[grade] = {};
-        }
+      const books =
+        updatedBooks[grade][subjectName][mediumName];
 
-        // -----------------------------------------------
-        // Subject create if missing
-        // -----------------------------------------------
+      // Book
+      if (!books[bookIndex]) {
+        books[bookIndex] = [];
+      }
 
-        if (!updatedBooks[grade][subjectName]) {
-          updatedBooks[grade][subjectName] = {};
-        }
-
-        // -----------------------------------------------
-        // Medium create if missing
-        // -----------------------------------------------
-
-        if (
-          !updatedBooks[grade][subjectName][mediumName]
-        ) {
-          updatedBooks[grade][subjectName][mediumName] =
-            [];
-        }
-
-        // -----------------------------------------------
-        // Books
-        // -----------------------------------------------
-
-        const books =
-          updatedBooks[grade][subjectName][mediumName];
-
-        // -----------------------------------------------
-        // Book create if missing
-        // -----------------------------------------------
-
-        if (!books[bookIndex]) {
-          books[bookIndex] = [];
-        }
-
-        // -----------------------------------------------
-        // Entry create if missing
-        // -----------------------------------------------
-
-        if (!books[bookIndex][entryIndex]) {
-          books[bookIndex][entryIndex] = {
-            date: "",
-            qty: "",
-          };
-        }
-
-        // -----------------------------------------------
-        // ONLY SELECTED SCHOOL
-        // ONLY SELECTED BOOK
-        // ONLY SELECTED DATE/QTY ROW
-        // -----------------------------------------------
-
+      // Entry
+      if (!books[bookIndex][entryIndex]) {
         books[bookIndex][entryIndex] = {
-          ...books[bookIndex][entryIndex],
-
-          [field]: value,
+          date: "",
+          qty: "",
         };
+      }
 
-        // -----------------------------------------------
-        // Return updated school
-        // -----------------------------------------------
+      // Date / Qty update
+      books[bookIndex][entryIndex] = {
+        ...books[bookIndex][entryIndex],
+        [field]: value,
+      };
 
-        return {
-          ...school,
-
-          books: updatedBooks,
-        };
-      });
-    });
-  };
+      return {
+        ...school,
+        books: updatedBooks,
+      };
+    })
+  );
+};
 
   // =====================================================
   // UI
