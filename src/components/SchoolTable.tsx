@@ -10,14 +10,15 @@ interface SchoolTableProps {
   setSchools: React.Dispatch<React.SetStateAction<School[]>>;
   setSubjects: React.Dispatch<React.SetStateAction<Subject[]>>;
 handleInputChange: (
-    schoolId: number,
-    grade: string,
-    subjectName: string,
-    mediumName: string,
-    bookIndex: number,
-    field: "date" | "qty",
-    value: string
-  ) => void;
+  schoolId: number,
+  grade: string,
+  subjectName: string,
+  mediumName: string,
+  bookIndex: number,
+  entryIndex: number,
+  field: "date" | "qty",
+  value: string
+) => void;
 }
 
 export default function SchoolTable({
@@ -31,7 +32,7 @@ const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 5;
 const [selectedSubject, setSelectedSubject] = useState("All");
-
+const [editingValues, setEditingValues] = useState<Record<string, string>>({});
 
 React.useEffect(() => {
   if (
@@ -52,10 +53,26 @@ const visibleSubjects =
 
 const searchText = search.trim().toLowerCase();
 
-const filteredSchools = schools.filter((school) =>
-  (school.code ?? "").toLowerCase().includes(searchText) ||
-  school.schoolName.toLowerCase().includes(searchText)
-);
+const filteredSchools = schools.filter((school) => {
+  // School Code
+  const code = (school.code ?? "").toLowerCase();
+
+  // School Name
+  const schoolName = (school.schoolName ?? "").toLowerCase();
+
+  // Grade / Class
+  const grade = (school.grade ?? "").toLowerCase();
+
+  // Complete books data ko searchable text bana rahe hain
+  const booksText = JSON.stringify(school.books ?? "").toLowerCase();
+
+  return (
+    code.includes(searchText) ||
+    schoolName.includes(searchText) ||
+    grade.includes(searchText) ||
+    booksText.includes(searchText)
+  );
+});
 const indexOfLast = currentPage * itemsPerPage;
 const indexOfFirst = indexOfLast - itemsPerPage;
 
@@ -64,106 +81,168 @@ const currentSchools = filteredSchools.slice(
   indexOfLast
 );
 
+const addSchool = () => {
+  // =========================================
+  // SCHOOL CODE - OPTIONAL
+  // =========================================
 
- const addSchool = () => {
-  const code = prompt("Enter School Code");
-  if (!code) return;
+  const codeInput = prompt("Enter School Code (Optional)");
 
-  const schoolName = prompt("Enter School Name");
-  if (!schoolName) return;
+  const code = codeInput?.trim() || "";
 
-  const grade = prompt("Enter Grade");
-  if (!grade) return;
+  // =========================================
+  // SCHOOL NAME - REQUIRED
+  // =========================================
 
-const books = {} as School["books"];
+  const schoolNameInput = prompt("Enter School Name");
 
-["11","12"].forEach((grade)=>{
+  if (!schoolNameInput?.trim()) {
+    return;
+  }
 
-  books[grade] = {};
+  const schoolName = schoolNameInput.trim();
 
-  subjects.forEach((subject)=>{
+  // =========================================
+  // CREATE BOOKS FOR CLASS 11 AND 12
+  // =========================================
 
-  books[grade][subject.name] = {} as MediumBooks;
+  const books = {} as School["books"];
 
-    subject.mediums.forEach((medium)=>{
+  (["11", "12"] as const).forEach((grade) => {
+    books[grade] = {};
 
-      books[grade][subject.name][medium.name] =
-        medium.books.map(()=>({
-          date:"",
-          qty:""
-        }));
+    subjects.forEach((subject) => {
+      books[grade][subject.name] = {} as MediumBooks;
 
+      subject.mediums.forEach((medium) => {
+        books[grade][subject.name][medium.name] =
+          medium.books.map(() => [
+            {
+              date: "",
+              qty: "",
+            },
+          ]);
+      });
     });
-
   });
 
-});
+  // =========================================
+  // CREATE NEW SCHOOL
+  // =========================================
 
-  const newSchool: School = {
-    id: Date.now(),
-    code,
-    schoolName,
-    grade,
-    books,
-  };
+ const newSchool: School = {
+  id: Date.now(),
+  code,
+  schoolName,
+  grade: "11",
 
-  setSchools((prev) => [...prev, newSchool]);
+  remarks: {
+    "11": "",
+    "12": "",
+  },
+
+  books,
 };
 
+  // =========================================
+  // ADD SCHOOL
+  // =========================================
+
+  setSchools((prev) => [
+    ...prev,
+    newSchool,
+  ]);
+};
 const addSubject = () => {
   const subjectName = prompt("Enter Subject Name");
   if (!subjectName) return;
 
-const mediumNames = [
-  "English Medium",
-  "Hindi Medium",
-];
+  const mediumNames = [
+    "English Medium",
+    "Hindi Medium",
+  ];
 
-  const books: Book[] = [];
+  
 
-  while (true) {
-    const bookName = prompt("Enter Book Name");
-
-    if (bookName) {
-      books.push({
-        id: Date.now() + books.length,
-        name: bookName,
-      });
-    }
-
-    if (!window.confirm("Add another book?")) break;
-  }
-
-  const existingSubject = subjects.find(
-    (s) => s.name.toLowerCase() === subjectName.toLowerCase()
+  const bookInput = prompt(
+    "Enter Book Names separated by comma"
   );
 
+  if (!bookInput) return;
+
+  // Comma se books separate hongi
+  const bookNames = bookInput
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name !== "");
+
+  if (bookNames.length === 0) return;
+
+  const books: Book[] = bookNames.map((bookName, index) => ({
+    id: Date.now() + index,
+    name: bookName,
+  }));
+
+  // =====================================================
+  // CHECK EXISTING SUBJECT
+  // =====================================================
+
+  const existingSubject = subjects.find(
+    (s) =>
+      s.name.toLowerCase() ===
+      subjectName.toLowerCase()
+  );
+
+ 
+
   if (existingSubject) {
-    // Subject already exists
+
     setSubjects((prev) =>
       prev.map((subject) => {
-        if (subject.name !== existingSubject.name) return subject;
 
-        const updatedMediums = [...subject.mediums];
+        if (
+          subject.name !==
+          existingSubject.name
+        ) {
+          return subject;
+        }
 
-        mediumNames.forEach((mediumName) => {
-          const index = updatedMediums.findIndex(
-            (m) => m.name.toLowerCase() === mediumName.toLowerCase()
-          );
+        const updatedMediums = [
+          ...subject.mediums,
+        ];
 
-          if (index >= 0) {
-            updatedMediums[index] = {
-              ...updatedMediums[index],
-              books: [...updatedMediums[index].books, ...books],
-            };
-          } else {
-            updatedMediums.push({
-              id: Date.now() + Math.random(),
-              name: mediumName,
-              books: [...books],
-            });
+        mediumNames.forEach(
+          (mediumName) => {
+
+            const index =
+              updatedMediums.findIndex(
+                (m) =>
+                  m.name.toLowerCase() ===
+                  mediumName.toLowerCase()
+              );
+
+            if (index >= 0) {
+
+              updatedMediums[index] = {
+                ...updatedMediums[index],
+
+                books: [
+                  ...updatedMediums[index].books,
+                  ...books,
+                ],
+              };
+
+            } else {
+
+              updatedMediums.push({
+                id: Date.now() + Math.random(),
+                name: mediumName,
+                books: [...books],
+              });
+
+            }
           }
-        });
+        );
 
         return {
           ...subject,
@@ -172,35 +251,57 @@ const mediumNames = [
       })
     );
 
+    // ===================================================
+    // UPDATE SCHOOL BOOK DATA
+    // ===================================================
+
     setSchools((prev) =>
       prev.map((school) => {
-        const updatedBooks = { ...school.books };
 
-      (["11", "12"] as const).forEach((grade) => {
+        const updatedBooks = {
+          ...school.books,
+        };
 
-  // Grade object create karo agar missing hai
-  if (!updatedBooks[grade]) {
-    updatedBooks[grade] = {} as any;
-  }
+        (["11", "12"] as const).forEach(
+          (grade) => {
 
-  // Subject object create karo agar missing hai
-  if (!updatedBooks[grade][subjectName]) {
-    updatedBooks[grade][subjectName] = {} as MediumBooks;
-  }
+            // Grade create
+            if (!updatedBooks[grade]) {
+              updatedBooks[grade] = {} as any;
+            }
 
-  mediumNames.forEach((mediumName) => {
-    const old =
-      updatedBooks[grade][subjectName][mediumName] || [];
+            // Subject create
+            if (
+              !updatedBooks[grade][subjectName]
+            ) {
+              updatedBooks[grade][subjectName] =
+                {} as MediumBooks;
+            }
 
-    updatedBooks[grade][subjectName][mediumName] = [
-      ...old,
-      ...books.map(() => ({
-        date: "",
-        qty: "",
-      })),
-    ];
-  });
-});
+            mediumNames.forEach(
+              (mediumName) => {
+
+                const old =
+                  updatedBooks[grade][subjectName][
+                    mediumName
+                  ] || [];
+
+                updatedBooks[grade][subjectName][
+                  mediumName
+                ] = [
+                  ...old,
+
+                  ...books.map(() => [
+                    {
+                      date: "",
+                      qty: "",
+                    },
+                  ]),
+                ];
+              }
+            );
+          }
+        );
 
         return {
           ...school,
@@ -208,43 +309,77 @@ const mediumNames = [
         };
       })
     );
+
   } else {
-    // New Subject
+
+    // ===================================================
+    // NEW SUBJECT
+    // ===================================================
+
     const newSubject: Subject = {
       id: Date.now(),
+
       name: subjectName,
-      mediums: mediumNames.map((medium, index) => ({
-        id: Date.now() + index,
-        name: medium,
-        books: [...books],
-      })),
+
+      mediums: mediumNames.map(
+        (medium, index) => ({
+          id: Date.now() + index,
+
+          name: medium,
+
+          books: [...books],
+        })
+      ),
     };
 
-    setSubjects((prev) => [...prev, newSubject]);
+    setSubjects((prev) => [
+      ...prev,
+      newSubject,
+    ]);
+
+    // ===================================================
+    // UPDATE SCHOOL BOOK DATA
+    // ===================================================
 
     setSchools((prev) =>
       prev.map((school) => {
-        const updatedBooks = { ...school.books };
 
-       (["11", "12"] as const).forEach((grade) => {
+        const updatedBooks = {
+          ...school.books,
+        };
 
-  if (!updatedBooks[grade]) {
-    updatedBooks[grade] = {} as any;
-  }
+        (["11", "12"] as const).forEach(
+          (grade) => {
 
-  if (!updatedBooks[grade][subjectName]) {
-    updatedBooks[grade][subjectName] = {} as MediumBooks;
-  }
+            // Grade create
+            if (!updatedBooks[grade]) {
+              updatedBooks[grade] = {} as any;
+            }
 
-  mediumNames.forEach((mediumName) => {
-    updatedBooks[grade][subjectName][mediumName] =
-      books.map(() => ({
-        date: "",
-        qty: "",
-      }));
-  });
+            // Subject create
+            if (
+              !updatedBooks[grade][subjectName]
+            ) {
+              updatedBooks[grade][subjectName] =
+                {} as MediumBooks;
+            }
 
-});
+            mediumNames.forEach(
+              (mediumName) => {
+
+                updatedBooks[grade][subjectName][
+                  mediumName
+                ] = books.map(() => [
+                  {
+                    date: "",
+                    qty: "",
+                  },
+                ]);
+
+              }
+            );
+          }
+        );
 
         return {
           ...school,
@@ -372,7 +507,30 @@ return {
     })
   );
 };
+const handleTextareaChange = (
+  schoolId: number,
+  grade: string,
+  subjectName: string,
+  mediumName: string,
+  bookIndex: number,
+  field: "date" | "qty",
+  value: string
+) => {
+  const values = value.split("\n");
 
+  values.forEach((item, entryIndex) => {
+    handleInputChange(
+      schoolId,
+      grade,
+      subjectName,
+      mediumName,
+      bookIndex,
+      entryIndex,
+      field,
+      item
+    );
+  });
+};
    
   return (
     <div className="p-5">
@@ -419,10 +577,11 @@ return {
             subjects={subjects}
           />
 
-          <ExportExcel
-            schools={schools}
-            subjects={subjects}
-          />
+       <ExportExcel
+  schools={schools}
+  subjects={subjects}
+  editingValues={editingValues}
+/>
         </div>
       </div>
 
@@ -468,23 +627,35 @@ return {
           )}
 
           {/* School Name */}
-          {rowIndex === 0 && (
-            <td
-              rowSpan={2}
-              className="sticky left-0 z-20 border bg-white p-2 min-w-[250px]"
-            >
-              <div className="flex items-center justify-between">
-                <span>{school.schoolName}</span>
+        {rowIndex === 0 && (
+  <td
+    rowSpan={2}
+    className="
+      sticky
+      left-0
+      z-20
+      border
+      border-black
+      border-r-2
+      bg-white
+      p-2
+      min-w-[250px]
+    "
+  >
+    <div className="flex items-center justify-between">
+      <span>{school.schoolName}</span>
 
-                <button onClick={() => deleteSchool(school.id)}>
-                  <FiTrash2 className="text-red-600" />
-                </button>
-              </div>
-            </td>
-          )}
-
+      <button
+        type="button"
+        onClick={() => deleteSchool(school.id)}
+      >
+        <FiTrash2 className="text-red-600" />
+      </button>
+    </div>
+  </td>
+)}
           {/* Class */}
-          <td className="border p-2 text-center">
+          <td className="border p-2 text-center ">
             {grade}
           </td>
 
@@ -492,60 +663,191 @@ return {
           {visibleSubjects.map((subject) =>
             subject.mediums.map((medium) =>
               medium.books.map((book, bookIndex) => {
-                const bookData =
-                  school.books?.[grade]?.[subject.name]?.[
-                    medium.name
-                  ]?.[bookIndex] || {
-                    date: "",
-                    qty: "",
-                  };
+             const rawBookEntries =
+  school.books?.[grade]?.[subject.name]?.[
+    medium.name
+  ]?.[bookIndex];
+
+const bookEntries = Array.isArray(rawBookEntries)
+  ? rawBookEntries
+  : rawBookEntries
+    ? [rawBookEntries]
+    : [
+        {
+          date: "",
+          qty: "",
+        },
+      ];
 
                 return (
                   <React.Fragment
                     key={`${school.id}-${grade}-${subject.id}-${medium.id}-${book.id}`}
                   >
-                    <td className="border p-1">
-                      <input
-                        type="date"
-                        value={bookData.date}
-                        onChange={(e) =>
-                          handleInputChange(
-                            school.id,
-                            grade,
-                            subject.name,
-                            medium.name,
-                            bookIndex,
-                            "date",
-                            e.target.value
-                          )
-                        }
-                        className="w-full bg-transparent outline-none"
-                      />
-                    </td>
 
-                    <td className="border p-1">
-                      <input
-                        type="number"
-                        value={bookData.qty}
-                        onChange={(e) =>
-                          handleInputChange(
-                            school.id,
-                            grade,
-                            subject.name,
-                            medium.name,
-                            bookIndex,
-                            "qty",
-                            e.target.value
-                          )
-                        }
-                        className="w-16 text-center bg-transparent outline-none"
-                      />
-                    </td>
+                    
+
+
+<td className="border p-1 align-top">
+  <textarea
+    value={
+      editingValues[
+        `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-date`
+      ] ??
+      bookEntries
+        .map((entry: any) =>
+          typeof entry === "object" && entry !== null
+            ? entry.date || ""
+            : ""
+        )
+        .join("\n")
+    }
+    onChange={(e) => {
+      const key = `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-date`;
+
+      setEditingValues((prev) => ({
+        ...prev,
+        [key]: e.target.value,
+      }));
+
+      // Height automatically increase
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onFocus={(e) => {
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onBlur={(e) => {
+      handleTextareaChange(
+        school.id,
+        grade,
+        subject.name,
+        medium.name,
+        bookIndex,
+        "date",
+        e.target.value
+      );
+
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    rows={1}
+    className="
+      w-full
+      min-w-[120px]
+      min-h-[24px]
+      resize-none
+      overflow-hidden
+      bg-transparent
+      outline-none
+      text-center
+      leading-6
+      whitespace-pre-wrap
+      block
+    "
+  />
+</td>
+
+{/* ================= QTY ================= */}
+<td className="border p-1 align-top">
+  <textarea
+    value={
+      editingValues[
+        `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-qty`
+      ] ??
+      bookEntries
+        .map((entry: any) =>
+          typeof entry === "object" && entry !== null
+            ? entry.qty || ""
+            : ""
+        )
+        .join("\n")
+    }
+    onChange={(e) => {
+      const key = `${school.id}-${grade}-${subject.name}-${medium.name}-${bookIndex}-qty`;
+
+      setEditingValues((prev) => ({
+        ...prev,
+        [key]: e.target.value,
+      }));
+
+      // Height automatically increase
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onFocus={(e) => {
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    onBlur={(e) => {
+      handleTextareaChange(
+        school.id,
+        grade,
+        subject.name,
+        medium.name,
+        bookIndex,
+        "qty",
+        e.target.value
+      );
+
+      e.target.style.height = "auto";
+      e.target.style.height = `${e.target.scrollHeight}px`;
+    }}
+    rows={1}
+    className="
+      w-20
+      min-h-[24px]
+      resize-none
+      overflow-hidden
+      bg-transparent
+      outline-none
+      text-center
+      leading-6
+      whitespace-pre-wrap
+      block
+    "
+  />
+</td>
+
                   </React.Fragment>
                 );
               })
             )
           )}
+    
+{/* ================= REMARK ================= */}
+<td className="border p-1 align-top min-w-[180px]">
+  <textarea
+    value={school.remarks?.[grade] ?? ""}
+    onChange={(e) =>
+      setSchools((prev) =>
+        prev.map((s) =>
+          s.id === school.id
+            ? {
+                ...s,
+                remarks: {
+                  ...s.remarks,
+                  [grade]: e.target.value,
+                },
+              }
+            : s
+        )
+      )
+    }
+    placeholder={`Remark for Class ${grade}`}
+    rows={2}
+    className="
+      w-full
+      min-h-[50px]
+      resize-none
+      overflow-hidden
+      bg-transparent
+      outline-none
+      text-left
+      leading-6
+    "
+  />
+</td>
         </tr>
       ))}
     </React.Fragment>

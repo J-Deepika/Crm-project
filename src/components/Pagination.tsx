@@ -1,5 +1,3 @@
-
-
 interface PaginationProps {
   currentPage: number;
   totalItems: number;
