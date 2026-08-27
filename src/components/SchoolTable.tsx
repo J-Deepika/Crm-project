@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import TableHeader from "./TableHeader";
 import ImportExcel, { ExportExcel } from "./Excel";
-import type { Subject, School, MediumBooks, Book } from "../types";
+import type { Subject, School, MediumBooks, Book, Grade } from "../types";
 import { FiTrash2 } from "react-icons/fi";
 import Pagination from "./Pagination";
 interface SchoolTableProps {
@@ -92,10 +92,10 @@ const currentSchools = filteredSchools.slice(
   indexOfLast
 );
 
-const visibleGrades =
+const visibleGrades: Grade[] =
   selectedClass === "All"
     ? (["11", "12"] as const)
-    : ([selectedClass] as const);
+    : ([selectedClass as Grade] as const);
 
 const addSchool = () => {
   // =========================================
