@@ -32,8 +32,8 @@ const [search, setSearch] = useState("");
 const [currentPage, setCurrentPage] = useState(1);
 const itemsPerPage = 5;
 const [selectedSubject, setSelectedSubject] = useState("All");
-
-
+const [selectedMedium, setSelectedMedium] = useState("All");
+const [selectedClass, setSelectedClass] = useState("All");
 React.useEffect(() => {
   if (
     selectedSubject !== "All" &&
@@ -44,12 +44,23 @@ React.useEffect(() => {
   }
 }, [subjects]);
 
-const visibleSubjects =
-  selectedSubject === "All"
-    ? subjects
-    : subjects.filter(
-        (subject) => subject.name === selectedSubject
-      );
+const visibleSubjects = subjects
+  .filter((subject) =>
+    selectedSubject === "All"
+      ? true
+      : subject.name === selectedSubject
+  )
+  .map((subject) => ({
+    ...subject,
+    mediums:
+      selectedMedium === "All"
+        ? subject.mediums
+        : subject.mediums.filter(
+            (medium) => medium.name === selectedMedium
+          ),
+  }))
+  .filter((subject) => subject.mediums.length > 0);
+
 
 const searchText = search.trim().toLowerCase();
 
@@ -80,6 +91,11 @@ const currentSchools = filteredSchools.slice(
   indexOfFirst,
   indexOfLast
 );
+
+const visibleGrades =
+  selectedClass === "All"
+    ? (["11", "12"] as const)
+    : ([selectedClass] as const);
 
 const addSchool = () => {
   // =========================================
@@ -531,6 +547,8 @@ const handleTextareaChange = (
     );
   });
 };
+
+
    
   return (
     <div className="p-5">
@@ -554,6 +572,24 @@ const handleTextareaChange = (
       {subject.name}
     </option>
   ))}
+</select>
+<select
+  value={selectedMedium}
+  onChange={(e) => setSelectedMedium(e.target.value)}
+  className="border rounded px-3 py-2 ml-3"
+>
+  <option value="All">All Mediums</option>
+  <option value="English Medium">English Medium</option>
+  <option value="Hindi Medium">Hindi Medium</option>
+</select>
+<select
+  value={selectedClass}
+  onChange={(e) => setSelectedClass(e.target.value)}
+  className="border rounded px-3 py-2 ml-3"
+>
+  <option value="All">All Classes</option>
+  <option value="11">Class 11</option>
+  <option value="12">Class 12</option>
 </select>
 
 
@@ -597,18 +633,24 @@ const handleTextareaChange = (
   <tbody>
   {currentSchools.map((school, index) => (
     <React.Fragment key={school.id}>
-     {(["11", "12"] as const).map((grade, rowIndex) => (
+     {visibleGrades.map((grade, rowIndex) => (
         <tr key={`${school.id}-${grade}`}>
           {/* S.No */}
           {rowIndex === 0 && (
-            <td rowSpan={2} className="border p-2 text-center">
+            <td
+  rowSpan={visibleGrades.length}
+  className="border p-2 text-center"
+>
               {indexOfFirst + index + 1}
             </td>
           )}
 
           {/* School Code */}
           {rowIndex === 0 && (
-            <td rowSpan={2} className="border p-2">
+            <td
+  rowSpan={visibleGrades.length}
+  className="border p-2"
+>
               <input
                 value={school.code || ""}
                 onChange={(e) =>
@@ -626,9 +668,10 @@ const handleTextareaChange = (
           )}
 
           {/* School Name */}
-        {rowIndex === 0 && (
+      
+{rowIndex === 0 && (
   <td
-    rowSpan={2}
+    rowSpan={visibleGrades.length}
     className="
       sticky
       left-0
